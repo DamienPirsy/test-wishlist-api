@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\V1;
 
+use App\Http\Controllers\Controller;
 use App\Products;
 use Illuminate\Http\Request;
 use App\Wishlist;
@@ -158,7 +159,7 @@ class WishlistController extends Controller
                     $w->save();
                     return response()->json(['message' => 'Product added'], 200);
                 } else {
-                    return response()->json(['message' => 'Product already present'], 403);
+                    return response()->json(['message' => 'Product already present'], 400);
                 }
             }
         } catch (\Exception $e) {
@@ -190,7 +191,7 @@ class WishlistController extends Controller
                     $w->save();
                     return response()->json(['message' => 'Product removed'], 200);
                 } else {
-                    return response()->json(['message' => 'Product not present'], 403);
+                    return response()->json(['message' => 'Product not present'], 400);
                 }
             }
         } catch (\Exception $e) {

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\V1;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Products;
 use Illuminate\Support\Str; // carico l'helper stringhe
-use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
