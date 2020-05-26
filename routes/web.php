@@ -37,10 +37,10 @@ $router->group(['prefix' => 'api'], function() use ($router) {
             $router->post('wishlists/{wid}/products', 'V1\WishlistController@addProducts');
             $router->delete('wishlists/{wid}/products', 'V1\WishlistController@removeProducts');
 
-            // gestione products
+            // gestione prodotti
             $router->get('products[/{id}]', 'V1\ProductController@fetch');
             $router->post('products', 'V1\ProductController@add');
-            $router->put('products/{id}', 'V1\ProductController@edit'); // @todo
+            //$router->put('products/{id}', 'V1\ProductController@edit'); @oos
             $router->delete('products/{id}', 'V1\ProductController@remove');
 
         });

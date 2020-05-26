@@ -10,8 +10,43 @@ class AuthController extends Controller
 {
     
     /**
-     * Store a new user.
+     * Registra un nuovo utente
      *
+     * @OA\Post(
+     *     path="/api/register/",
+     *     tags={"auth"},
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         description="username",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="query",
+     *         description="email (univoca)",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="password",
+     *         in="query",
+     *         description="password",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response="201",
+     *         description="Utente creato con successo",
+     *         @OA\JsonContent()
+     *     ),
+     *     @OA\Response(
+     *         response="409",
+     *         description="Errore creazione utente / Eccezione",
+     *     )
+     * )
+     * 
      * @param  Request  $request
      * @return Response
      */
@@ -46,6 +81,36 @@ class AuthController extends Controller
      /**
      * Get a JWT via given credentials.
      *
+     * @OA\Post(
+     *     path="/api/login/",
+     *     tags={"auth"},
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="query",
+     *         description="email",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="password",
+     *         in="query",
+     *         description="password",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Autenticazione effettuata",
+     *         @OA\JsonContent(
+     *            @OA\Property(
+     *              title="token",
+     *              type="string",
+     *              description="JWT token"
+     *            )
+     *        )
+     *     )
+     * )
+     * 
      * @param  Request  $request
      * @return Response
      */

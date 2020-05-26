@@ -8,6 +8,20 @@ use Illuminate\Support\Facades\Auth;
 class Controller extends BaseController
 {
     /**
+     * @OA\Info(title="Wishlist API", version="1.0.0")
+     * @OAS\SecurityScheme(
+     *  securityScheme="bearerAuth",
+     *  type="http",
+     *  scheme="bearer",
+     *  bearerFormat: "JWT",
+     *  in="header",
+     *  name="bearer"
+     * )
+     * 
+     */
+
+
+    /**
      * Generico per risposte positive (200, ecc.)
      *
      * @param string $message

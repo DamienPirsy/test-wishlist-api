@@ -22,6 +22,18 @@ class AppTest extends TestCase
              ->seeStatusCode(200)
              ->seeInDatabase('products', ['sku' => $sku]);
     }
+
+    /**
+     * @test
+     */
+    public function should_delete_product()
+    {
+        $product = factory(App\Products::class)->create();
+        $this->asLoggedUser()
+            ->delete("api/v1/products/{$product->id}")
+            ->seeStatusCode(204)
+            ->notSeeInDatabase('products', ['id' => $product->id]);
+    }
         
     /**
      * Creo 5 wishlist con lo stesso utente e verifico che le recuperi tutte
@@ -202,6 +214,21 @@ class AppTest extends TestCase
              ]);
     }
 
+    /** @test */
+    public function should_get_products()
+    {
+        $user = $this->makeUser();
+        $list = factory(App\Wishlist::class)->create([
+            'user_id' => $user->id
+        ]);
+        $product = factory(App\Products::class)->create();
+        $list->products()->attach($product);
+        
+        $this->asLoggedUser($user)
+             ->get("api/v1/wishlists/{$list->id}/products")
+             ->seeStatusCode(200);
+    }
+
     /**
      * Prova ad aggiungere il prodotto ad un'altra lista non sua
      * @test
@@ -242,7 +269,7 @@ class AppTest extends TestCase
     /** @test
      * cancella prodotto dalla lista
      */
-    public function should_remove_product()
+    public function should_remove_one_product()
     {
         $user = $this->makeUser();
         $list = factory(App\Wishlist::class)->create([
@@ -253,5 +280,29 @@ class AppTest extends TestCase
              ->post("api/v1/wishlists/{$list->id}/products", ['pid' => $product->id])
              ->delete("api/v1/wishlists/{$list->id}/products", ['pid' => $product->id])
              ->seeStatusCode(204);
+    }
+
+    /** 
+     * @test
+     * cancella prodotti dalla lista
+     * Verifico che il numero di quelli trovati sia 0
+     */
+    public function should_remove_all_products()
+    {
+        $user = $this->makeUser();
+        $list = factory(App\Wishlist::class)->create([
+            'user_id' => $user->id
+        ]);
+        $products = factory(App\Products::class, 3)->create();
+        $list->products()->saveMany($products);
+
+        $this->asLoggedUser($user)
+             ->delete("api/v1/wishlists/{$list->id}/products")
+             ->seeStatusCode(204)
+             ->assertCount(0, json_decode(
+                 $this->asLoggedUser($user)
+                 ->get("api/v1/wishlists/{$list->id}/products")
+                 ->response->getContent())->items
+             );
     }
 }

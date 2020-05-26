@@ -13,6 +13,34 @@ class WishlistController extends Controller
 {
 
     /**
+     * @OA\Get(
+     *     path="/api/v1/wishlists/{id}",
+     *     security={
+     *         {"bearer":{}}
+     *     },
+     *     tags={"wishlist"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Id wishlist da recuperare",
+     *         required=false,
+     *         @OA\Schema(type="int")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Restituisce la wishlist richiesta o tutte le wishlist dell'utente",
+     *         @OA\JsonContent()
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="La wishlist non esiste, o l'id non corrisponde ad una wishlist valida",
+     *     ),
+     *     @OA\Response(
+     *         response="500",
+     *         description="Errore",
+     *     )
+     * )
+     *
      * Restituisce una o tutte le wishlist dell'utente loggato
      *
      * @param Request $request
@@ -39,7 +67,35 @@ class WishlistController extends Controller
     }
     
     /**
-     * Store a new user.
+     * @OA\Post(
+     *     path="/api/v1/wishlists/",
+     *     security={
+     *         {"bearer":{}}
+     *     },
+     *     tags={"wishlist"},
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         description="Nome da assegnare alla wishlist",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Wishlist creata con successo",
+     *         @OA\JsonContent(
+     *            @OA\Property(
+     *              title="id",
+     *              type="integer",
+     *              description="Id wishlist creata"
+     *            )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="500",
+     *         description="Errore / Eccezione",
+     *     )
+     * )
      *
      * @param  Request  $request
      * @return Response
@@ -65,6 +121,47 @@ class WishlistController extends Controller
 
     /**
      * Modifica la wishlist
+     * 
+     * @OA\Put(
+     *     path="/api/v1/wishlists/{id}",
+     *     security={
+     *         {"bearer":{}}
+     *     },
+     *     tags={"wishlist"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Id wishlist da modificare",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         description="Nome da assegnare alla wishlist",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Wishlist modificata con successo",
+     *         @OA\JsonContent(
+     *            @OA\Property(
+     *              title="id",
+     *              type="integer",
+     *              description="Id prodotto modificato"
+     *            )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="Wishlist non trovata"
+     *     ),
+     *     @OA\Response(
+     *         response="500",
+     *         description="Errore / Eccezione",
+     *     )
+     * )
      *
      * @param Request $request
      * @param int $id
@@ -96,6 +193,33 @@ class WishlistController extends Controller
     /**
      * Deletes by index key
      *
+     * @OA\Delete(
+     *     path="/api/v1/wishlists/{id}",
+     *     security={
+     *         {"bearer":{}}
+     *     },
+     *     tags={"wishlist"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Id wishlist da eliminare",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response="204",
+     *         description="Wishlist cancellata con successo"
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="Wishlist non trovata"
+     *     ),
+     *     @OA\Response(
+     *         response="500",
+     *         description="Errore / Eccezione",
+     *     )
+     * )
+     * 
      * @param Request $request
      * @param int $id
      * @return void
@@ -122,6 +246,34 @@ class WishlistController extends Controller
     /**
      * Recupera tutti i prodotti relativi all wishlist indicata
      *
+     * @OA\Get(
+     *     path="/api/v1/wishlists/{id}/products",
+     *     security={
+     *         {"bearer":{}}
+     *     },
+     *     tags={"wishlist-products"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Id wishlist da cui estrarre i prodotti",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Elenco prodotti",
+     *         @OA\JsonContent()
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="Wishlist non trovata"
+     *     ),
+     *     @OA\Response(
+     *         response="500",
+     *         description="Errore / Eccezione",
+     *     )
+     * )
+     * 
      * @param Request $request
      * @param int $id
      * @return void
@@ -136,7 +288,7 @@ class WishlistController extends Controller
                 if ($list->user_id != Auth::user()->id) {
                     return $this->genericErrorResponse('UNAUTHORIZED', [], 401);
                 }
-                $products = $list->products();
+                $products = $list->products()->get();
                 return $this->genericSuccessResponse('OK', ['items' => $products, 'count' => count($products)]);
             }
         } catch (\Exception $e) {
@@ -147,6 +299,45 @@ class WishlistController extends Controller
     /**
      * Aggiunge il prodotto $pid alla lista $wid
      *
+     * @OA\Post(
+     *     path="/api/v1/wishlists/{id}/products",
+     *     security={
+     *         {"bearer":{}}
+     *     },
+     *     tags={"wishlist-products"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Id wishlist da cui estrarre i prodotti",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="pid",
+     *         in="query",
+     *         description="Id prodotto da aggiungere",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Elenco prodotti",
+     *         @OA\JsonContent()
+     *     ),
+     *     @OA\Response(
+     *         response="301",
+     *         description="Prodotto già presente"
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="Wishlist o prodotto non trovati"
+     *     ),
+     *     @OA\Response(
+     *         response="500",
+     *         description="Errore / Eccezione",
+     *     )
+     * )
+     * 
      * @param Request $request
      * @param int $wid - wishlist id
      * @return Response
@@ -182,30 +373,67 @@ class WishlistController extends Controller
     }
 
     /**
-     * ELimina il prodotto $pid dalla lista $wid
+     * ELimina il prodotto passato dalla lista $wid
      *
+     * @OA\Delete(
+     *     path="/api/v1/wishlists/{id}/products",
+     *     security={
+     *         {"bearer":{}}
+     *     },
+     *     tags={"wishlist-products"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Id wishlist da cui estrarre i prodotti",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="pid",
+     *         in="query",
+     *         description="Id prodotto da rimuovere",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="Wishlist o prodotto trovati"
+     *     ),
+     *     @OA\Response(
+     *         response="500",
+     *         description="Errore / Eccezione",
+     *     )
+     * )
+     * 
      * @param Request $request
-     * @param [type] $wid
+     * @param integer $wid
      * @return void
      */
     public function removeProducts(Request $request, $wid)
     {
-        $this->validate($request, [
-            'pid' => 'required|numeric'
-        ]);
-
+        $pid = $request->input('pid');
         try {
             $list = Wishlist::with('products')->find($wid);
-            $product = Products::find($request->input('pid'));
-
             if (!$list) {
                 return $this->genericErrorResponse('NOT FOUND', ['message' => 'Wishlist not found'], 404);
-            } elseif (!$product) {
-                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Product not found'], 404);
             } else {
                 if ($list->user_id != Auth::user()->id) {
                     return $this->genericErrorResponse('UNAUTHORIZED', [], 401);
                 }
+
+                // se non è specificato un id, li rimuovo tutti
+                if (!$pid) {
+                    $list->products()->detach();
+                    $list->save();
+                    return $this->genericSuccessResponse('DELETED_ALL', [], 204);                    
+                }
+
+                // altrimenti cerco ed elimino il prodotto
+                $product = Products::find($pid);
+                if (!$product) {
+                    return $this->genericErrorResponse('NOT FOUND', ['message' => 'Product not found'], 404);
+                }             
+
                 if ($list->products()->find($product->id)) {
                     $list->products()->detach($product->id);
                     $list->save();

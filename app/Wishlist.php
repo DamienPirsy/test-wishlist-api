@@ -18,20 +18,24 @@ class Wishlist extends Model
 
     /**
      * Report completo delle wishlist
+     * Passare il parametro $header per mostrare o meno l'intestazione delle colonne
      *
      * @param string $filepath
+     * @param boolean $header
      * @return boolean
      */
-    public function getReport($filepath) 
+    public function getReport($filepath, $header = false) 
     {
-        $sql = sprintf("SELECT u.email AS `user`, w.name AS `title wishlist`,
+        $sql = sprintf("%sSELECT u.email , w.name,
             (SELECT COUNT(pw.id) FROM products_wishlist pw 
-            WHERE pw.wishlist_id = w.id) AS `number of items`
+            WHERE pw.wishlist_id = w.id) AS items
         INTO OUTFILE '%s'
             FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"'
             LINES TERMINATED BY '\n'
         FROM users u
-        JOIN wishlists w ON w.user_id = u.id", $filepath);
+        JOIN wishlists w ON w.user_id = u.id", 
+            $header ? "SELECT 'user', 'title wishlist', 'numder of items' UNION " : '',
+            $filepath);
 
         DB::beginTransaction();
         try {

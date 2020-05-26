@@ -39,6 +39,57 @@ class ProductController extends Controller
     
     /**
      * Aggiunge prodotto
+     * 
+     * @OA\Post(
+     *     path="/api/v1/products/",
+     *     security={
+     *         {"bearer":{}}
+     *     },
+     *     tags={"products"},
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         description="Nome del prodotto",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="sku",
+     *         in="query",
+     *         description="Codice univoco del prodotto",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="price",
+     *         in="query",
+     *         description="Prezzo",
+     *         required=true,
+     *         @OA\Schema(type="float")
+     *     ),
+     *     @OA\Parameter(
+     *         name="description",
+     *         in="query",
+     *         description="Descrizione prodotto",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Prodotto creato con successo",
+     *         @OA\JsonContent(
+     *            @OA\Property(
+     *              title="id",
+     *              type="integer",
+     *              description="Id prodotto creato"
+     *            )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="500",
+     *         description="Errore / Eccezione",
+     *     )
+     * )
      *
      * @param  Request  $request
      * @return Response
@@ -67,7 +118,8 @@ class ProductController extends Controller
     }
 
     /**
-     * Modifica la wishlist
+     * Modifica prodotto
+     * @todo
      *
      * @param Request $request
      * @param int $id
@@ -79,6 +131,33 @@ class ProductController extends Controller
 
     /**
      * Deletes by index key
+     * 
+     * @OA\Delete(
+     *     path="/api/v1/products/{id}",
+     *     security={
+     *         {"bearer":{}}
+     *     },
+     *     tags={"products"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Id prodotto da eliminare",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response="204",
+     *         description="Prodotto cancellato con successo"
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="Prodotto non trovato"
+     *     ),
+     *     @OA\Response(
+     *         response="500",
+     *         description="Errore / Eccezione",
+     *     )
+     * )
      *
      * @param Request $request
      * @param int $id
