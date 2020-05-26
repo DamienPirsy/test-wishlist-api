@@ -111,7 +111,7 @@ class ProductController extends Controller
             $product->price = $request->input('price');
             $product->description = $request->input('description');
             $product->save();
-            return $this->genericSuccessResponse('CREATED', ['id' => $product->id]);
+            return $this->genericSuccessResponse('CREATED', ['id' => $product->id], 201);
         } catch (\Exception $e) {
             return $this->genericErrorResponse($e->getMessage());
         }

@@ -19,7 +19,7 @@ class AppTest extends TestCase
         $data = ['name' => 'prodotto1', 'sku' => $sku, 'price' => 1.99];
         $this->asLoggedUser()
              ->post('api/v1/products', $data)
-             ->seeStatusCode(200)
+             ->seeStatusCode(201)
              ->seeInDatabase('products', ['sku' => $sku]);
     }
 
@@ -114,7 +114,7 @@ class AppTest extends TestCase
         $data = ['name' => 'test1'];
         $this->asLoggedUser()
             ->post('api/v1/wishlists', $data)
-            ->seeStatusCode(200)
+            ->seeStatusCode(201)
             ->seeInDatabase('wishlists', ['name' => 'test1'])
             ->seeJson([
                 'message' => 'CREATED',
@@ -207,7 +207,7 @@ class AppTest extends TestCase
         $product = factory(App\Products::class)->create();       
         $this->asLoggedUser($user)
              ->post("api/v1/wishlists/{$list->id}/products", ['pid' => $product->id])
-             ->seeStatusCode(200)
+             ->seeStatusCode(201)
              ->seeInDatabase('products_wishlist', ['products_id' => $product->id, 'wishlist_id' => $list->id])
              ->seeJson([
                  'message' => 'CREATED'

@@ -113,7 +113,7 @@ class WishlistController extends Controller
             $list->alias = Str::of($request->input('name'))->slug('-'); // giusto per completezza
             $list->user_id = Auth::user()->id;
             $list->save();
-            return $this->genericSuccessResponse('CREATED', ['id' => $list->id]);
+            return $this->genericSuccessResponse('CREATED', ['id' => $list->id], 201);
         } catch (\Exception $e) {
             return $this->genericErrorResponse($e->getMessage());
         }
@@ -362,7 +362,7 @@ class WishlistController extends Controller
                 if (!$list->products()->find($product->id)) {
                     $pw = $list->products()->attach($product->id);
                     $list->save();
-                    return $this->genericSuccessResponse('CREATED');
+                    return $this->genericSuccessResponse('CREATED', [], 201);
                 } else {
                     return $this->genericSuccessResponse('NOT ADDED',[], 301);
                 }
