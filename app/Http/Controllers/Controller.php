@@ -7,6 +7,33 @@ use Illuminate\Support\Facades\Auth;
 
 class Controller extends BaseController
 {
+    /**
+     * Generico per risposte positive (200, ecc.)
+     *
+     * @param string $message
+     * @param integer $status
+     * @param array $options
+     * @return Response
+     */
+    protected function genericSuccessResponse($message, $options = [], $status = 200)
+    {
+        $basic = ['message' => $message];
+        return response()->json(array_merge($basic, $options), $status);
+    }
+
+    /**
+     * Generico costruttore per la risposta d'errore (500-404-ecc.)
+     *
+     * @param string $message messaggio d'errore
+     * @param integer $status
+     * @param array $options
+     * @return Response
+     */
+    protected function genericErrorResponse($message, $options = [], $status = 500)
+    {
+        $basic = ['error' => $message];
+        return response()->json(array_merge($basic, $options),$status);
+    }
     
     /**
      * 

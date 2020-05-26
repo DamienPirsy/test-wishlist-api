@@ -30,12 +30,11 @@ class WishlistController extends Controller
             // ^_ ->get() restituisce una Collection
 
             if ($lists->isEmpty()) {
-                return response()->json(['message' => 'Wishlist not found'], 404);
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Wishlist not found'], 404);
             }
-            return response()->json(['wishlists' => $lists, 'message' => 'OK'], 200);
-
+            return $this->genericSuccessResponse('OK', ['items' => $lists, 'count' => count($lists)]);
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }
     }
     
@@ -58,9 +57,9 @@ class WishlistController extends Controller
             $list->alias = Str::of($request->input('name'))->slug('-'); // giusto per completezza
             $list->user_id = Auth::user()->id;
             $list->save();
-            return response()->json(['id' => $list->id, 'message' => 'OK'], 200);
+            return $this->genericSuccessResponse('CREATED', ['id' => $list->id]);
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }
     }
 
@@ -78,16 +77,19 @@ class WishlistController extends Controller
         ]);
         try {
             $list = Wishlist::find($id);
-            if (null === $list) {
-                return response()->json(['message' => 'Wishlist not found'], 404);
-            }
-
-            $list->name = $request->input('name');
-            $list->alias = Str::of($request->input('name'))->slug('-'); // giusto per completezza
-            $list->save();
-            return response()->json(['message' => 'Wishlist succesfully updated'], 200);
+            if (!$list) {
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Wishlist not found'], 404);
+            } else {
+                if ($list->user_id != Auth::user()->id) {
+                    return $this->genericErrorResponse('UNAUTHORIZED', [], 401);
+                }
+                $list->name = $request->input('name');
+                $list->alias = Str::of($request->input('name'))->slug('-'); // giusto per completezza
+                $list->save();
+                return $this->genericSuccessResponse('UPDATED', ['id' => $list->id]);
+            }            
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }        
     }
 
@@ -101,15 +103,18 @@ class WishlistController extends Controller
     public function remove(Request $request, $id) {
         try {
             // Solo l'utente loggato può eliminare una sua wishlist
-            if (Wishlist::where(['id' => $id, 'user_id' => Auth::user()->id])->delete()) {
-                return response()->json(['message' => 'OK'], 200);
+            if ($list = Wishlist::find($id)) {
+                if ($list->user_id == Auth::user()->id) {
+                    $list->delete();
+                    return $this->genericSuccessResponse('DELETED', [], 204);
+                } else {
+                    return $this->genericErrorResponse('UNAUTHORIZED', [], 401);
+                }
             } else {
-                // Generico not found, anche se potrei distinguere un "Not authorized" se l'utente
-                // non corrisponde
-                return response()->json(['message' => 'Wishlist not found'], 404);
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Wishlist not found'], 404);
             }
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }
     }
 
@@ -124,14 +129,18 @@ class WishlistController extends Controller
     public function fetchProducts(Request $request, $wid) 
     {
         try {
-            $list = Wishlist::with('products')->where(['id' => $wid, 'user_id' => Auth::user()->id])->get();
-            if ($list->isEmpty()) {
-                return response()->json(['message' => 'Wishlist not found'], 404);                
+            $list = Wishlist::find($wid);
+            if (!$list) {
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Wishlist not found'], 404);          
             } else {
-                return response()->json(['data' => $list], 200);
+                if ($list->user_id != Auth::user()->id) {
+                    return $this->genericErrorResponse('UNAUTHORIZED', [], 401);
+                }
+                $products = $list->products();
+                return $this->genericSuccessResponse('OK', ['items' => $products, 'count' => count($products)]);
             }
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }
     }
 
@@ -140,30 +149,35 @@ class WishlistController extends Controller
      *
      * @param Request $request
      * @param int $wid - wishlist id
-     * @param int $pid - product id
      * @return Response
      */
-    public function addProducts(Request $request, $wid, $pid) 
+    public function addProducts(Request $request, $wid) 
     {
+        $this->validate($request, [
+            'pid' => 'required|numeric'
+        ]);
         try {
-            $list = Wishlist::with('products')->where(['id' => $wid, 'user_id' => Auth::user()->id])->get();
-            $product = Products::where(['id' => $pid])->get();
-            if ($list->isEmpty()) {
-                return response()->json(['message' => 'Wishlist not found'], 404);
-            } elseif ($product->isEmpty()) {
-                return response()->json(['message' => 'Product not found'], 404);
+            $list = Wishlist::with('products')->find($wid);
+            $product = Products::find($request->input('pid'));
+
+            if (!$list) {
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Wishlist not found'], 404);
+            } elseif (!$product) {
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Product not found'], 404);
             } else {
-                $w = $list->first();
-                if (null == $w->products()->find($pid)) {
-                    $w->products()->attach($pid);
-                    $w->save();
-                    return response()->json(['message' => 'Product added'], 200);
+                if ($list->user_id != Auth::user()->id) {
+                    return $this->genericErrorResponse('UNAUTHORIZED', [], 401);
+                }
+                if (!$list->products()->find($product->id)) {
+                    $pw = $list->products()->attach($product->id);
+                    $list->save();
+                    return $this->genericSuccessResponse('CREATED');
                 } else {
-                    return response()->json(['message' => 'Product already present'], 400);
+                    return $this->genericSuccessResponse('NOT ADDED',[], 301);
                 }
             }
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }
     }
 
@@ -172,30 +186,36 @@ class WishlistController extends Controller
      *
      * @param Request $request
      * @param [type] $wid
-     * @param [type] $pid
      * @return void
      */
-    public function removeProducts(Request $request, $wid, $pid)
+    public function removeProducts(Request $request, $wid)
     {
+        $this->validate($request, [
+            'pid' => 'required|numeric'
+        ]);
+
         try {
-            $list = Wishlist::with('products')->where(['id' => $wid, 'user_id' => Auth::user()->id])->get();
-            $product = Products::where(['id' => $pid])->get();
-            if ($list->isEmpty()) {
-                return response()->json(['message' => 'Wishlist not found'], 404);
-            } elseif ($product->isEmpty()) {
-                return response()->json(['message' => 'Product not found'], 404);
+            $list = Wishlist::with('products')->find($wid);
+            $product = Products::find($request->input('pid'));
+
+            if (!$list) {
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Wishlist not found'], 404);
+            } elseif (!$product) {
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Product not found'], 404);
             } else {
-                $w = $list->first();
-                if (null !== $w->products()->find($pid)) {
-                    $w->products()->detach($pid);
-                    $w->save();
-                    return response()->json(['message' => 'Product removed'], 200);
+                if ($list->user_id != Auth::user()->id) {
+                    return $this->genericErrorResponse('UNAUTHORIZED', [], 401);
+                }
+                if ($list->products()->find($product->id)) {
+                    $list->products()->detach($product->id);
+                    $list->save();
+                    return $this->genericSuccessResponse('DELETED', [], 204);
                 } else {
-                    return response()->json(['message' => 'Product not present'], 400);
+                    return $this->genericErrorResponse('NOT FOUND', ['message' => 'Product not found'], 404);
                 }
             }
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }
     }
 }

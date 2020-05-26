@@ -25,15 +25,15 @@ class ProductController extends Controller
             } else {
                 $products = Products::all();
             }
-            // ^_ ->all() restituisce una Collection
+            // ^_ anche all() restituisce una Collection
 
             if ($products->isEmpty()) {
-                return response()->json(['message' => 'Product not found'], 404);
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Product not found'], 404);
             }
-            return response()->json(['products' => $products, 'message' => 'OK'], 200);
+            return $this->genericSuccessResponse('OK', ['items' => $products, 'count' => count($products)]);
 
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }
     }
     
@@ -60,9 +60,9 @@ class ProductController extends Controller
             $product->price = $request->input('price');
             $product->description = $request->input('description');
             $product->save();
-            return response()->json(['id' => $product->id, 'message' => 'OK'], 200);
+            return $this->genericSuccessResponse('CREATED', ['id' => $product->id]);
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }
     }
 
@@ -74,7 +74,7 @@ class ProductController extends Controller
      * @return response
      */
     public function edit(Request $request, $id) {
-        return response()->json(['message' => 'Not implemented yet!'], 501);
+        return $this->genericErrorResponse('NOT IMPLEMENTED', 501);
     }
 
     /**
@@ -86,14 +86,13 @@ class ProductController extends Controller
      */
     public function remove(Request $request, $id) {
         try {
-            // Solo l'utente loggato può eliminare una sua wishlist
             if (Products::where(['id' => $id])->delete()) {
-                return response()->json(['message' => 'OK'], 200);
+                return $this->genericSuccessResponse('DELETED', [], 204);
             } else {
-                return response()->json(['message' => 'Product not found'], 404);
+                return $this->genericErrorResponse('NOT FOUND', ['message' => 'Product not found'], 404);
             }
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return $this->genericErrorResponse($e->getMessage());
         }
     }
 }

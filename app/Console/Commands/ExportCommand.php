@@ -14,7 +14,7 @@ class ExportCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'wishlist:export {--o|output=export}';
+    protected $signature = 'wishlist:export {--f|filename=export} {--d|dir=}';
 
     /**
      * 
@@ -40,15 +40,23 @@ class ExportCommand extends Command
     public function handle()
     {
         // Mi costruisco il nome del file di output
-        $outputFile = $this->option('output');
+        $filename = $this->option('filename');
         $d = (new \DateTime)->format('YmdHis');
-        if (!Str::endsWith($outputFile, '.csv')) {
-            $outputFile .= sprintf("_%s.csv", $d);
+        if (!Str::endsWith($filename, '.csv')) {
+            $filename .= sprintf("_%s.csv", $d);
         } else {
-            $outputFile = Str::replaceLast('.csv', sprintf("_%s.csv", $d), $outputFile);
+            $filename = Str::replaceLast('.csv', sprintf("_%s.csv", $d), $filename);
         }
 
+        $directory = $this->option('dir') ? $this->Option('dir') : storage_path();
+        $filepath = sprintf("%s/%s", $directory, $filename);
+        $this->info(sprintf("Exporting file to: %s", $filepath));
+        
         $w = new Wishlist();
-        $w->getReport($outputFile);
+        if (!$w->getReport($filepath)) {
+            $this->error('Error in creating the file, see log for more info');
+        } else {
+            $this->info('File succesfully exported');
+        }
     }
 }

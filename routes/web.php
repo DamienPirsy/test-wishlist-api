@@ -33,9 +33,9 @@ $router->group(['prefix' => 'api'], function() use ($router) {
             $router->put('wishlists/{id}', 'V1\WishlistController@edit'); // modifico
             $router->delete('wishlists/{id}', 'V1\WishlistController@remove'); // cancello
 
-            $router->get('wishlist/{wid}/products', 'V1\WishlistController@fetchProducts');
-            $router->post('wishlist/{wid}/products/{pid}', 'V1\WishlistController@addProducts');
-            $router->delete('wishlist/{wid}/products/{pid}', 'V1\WishlistController@removeProducts');
+            $router->get('wishlists/{wid}/products', 'V1\WishlistController@fetchProducts');
+            $router->post('wishlists/{wid}/products', 'V1\WishlistController@addProducts');
+            $router->delete('wishlists/{wid}/products', 'V1\WishlistController@removeProducts');
 
             // gestione products
             $router->get('products[/{id}]', 'V1\ProductController@fetch');

@@ -17,6 +17,7 @@ class CreateWishlistProductsTable extends Migration
             $table->id();
             $table->foreignId('wishlist_id');
             $table->foreignId('products_id');
+            $table->timestamp('created_at');
         });
     }
 

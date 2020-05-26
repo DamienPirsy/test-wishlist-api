@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Wishlist extends Model 
 {
@@ -15,7 +16,13 @@ class Wishlist extends Model
         return $this->belongsToMany('App\Products');
     }
 
-    public function getReport($filename) 
+    /**
+     * Report completo delle wishlist
+     *
+     * @param string $filepath
+     * @return boolean
+     */
+    public function getReport($filepath) 
     {
         $sql = sprintf("SELECT u.email AS `user`, w.name AS `title wishlist`,
             (SELECT COUNT(pw.id) FROM products_wishlist pw 
@@ -24,9 +31,19 @@ class Wishlist extends Model
             FIELDS TERMINATED BY ';' OPTIONALLY ENCLOSED BY '\"'
             LINES TERMINATED BY '\n'
         FROM users u
-        JOIN wishlists w ON w.user_id = u.id", $filename);
-        \var_dump(DB::statement($sql));
+        JOIN wishlists w ON w.user_id = u.id", $filepath);
 
+        DB::beginTransaction();
+        try {
+            DB::statement($sql);
+            DB::commit();
+            Log::debug(sprintf("Load data ok: %s", $filepath));
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return false;
+        }
     }
 
 }
