@@ -21,7 +21,10 @@ class ExportCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Wishlist exporting tool. Options: -o filename';
+    protected $description = 'Wishlist exporting command. 
+        Options: -f filename (default: export)
+                 -d directory (default: /tmp)
+                 -H header (default: false)';
 
     /**
      * 

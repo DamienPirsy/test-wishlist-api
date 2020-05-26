@@ -1,28 +1,45 @@
+### setup
 
-Clonare il repository - per comodità ho tolto tutto dal .gitignore
+1) Clonare il repository
+2) Scaricare i container MySql, Nginx e PHP:
 
-scaricare i container MySql, Nginx, Php
-
-$ docker-compose up
-
-
-$ docker-compose exec db bash
+```bash    
+docker-compose up -d
+```
+L'applicativo è accessibile sulla porta :8084
 
 
-Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
+### Migrazione iniziale:
 
-## Official Documentation
+```bash
+cd test-wishlist-api/
+~/test-wishlist-api: $ docker-compose exec app php artisan migrate:fresh --seed
+```
+Passando l'opzione `--seed` si può avere un primo popolamento di prodotti ed utenti, altrimenti è possibile crearli con i metodi REST previsti; 
 
-Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
+### Unit testing
 
-## Contributing
+```bash
+cd test-wishlist-api/
+~/test-wishlist-api: $ docker-compose exec app vendor/bin/phpunit
+```
 
-Thank you for considering contributing to Lumen! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Swagger
 
-## Security Vulnerabilities
+Ho implementato un abbozzo di swagger con autenticazione per testare da web le varie rotte esposte. L'url è accesibile al path  ```/api/documentation```
 
-If you discover a security vulnerability within Lumen, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+### Comando di esportazione
 
-## License
+Un comando artisan permette di esportare i dati delle wishlist in CSV usando una LOAD DATA INTO OUTFILE. I parametri opzionali sono:
+* -f filename: specifica un nome del file; l'estensione .csv, insieme ad un timestamp, vengono aggiunte in automatico; il valore di default è "export_yyyymmddhhiiss.csv"
+* - d dir: directory in cui viene salvato il file; di default è `/tmp`, quindi accessibile dalla bash del container relativo al database:
+```bash
+~/test-wishlist-api:$ docker-compose exec db bash
+root@container-id: cd /tmp
+```
+* - H header: se presente viene mostrata l'intestazione del CSV
 
-The Lumen framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+cd test-wishlist-api/
+~/test-wishlist-api: $ docker-compose exec app php artisan wishlist:export [-f=export [-H] [-d=/tmp]
+```
