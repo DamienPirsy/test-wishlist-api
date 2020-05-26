@@ -51,9 +51,9 @@ class WishlistController extends Controller
     {
         try {
             if ($id) {
-                $lists = Wishlist::where(['id' => $id, 'user_id' => Auth::user()->id])->get();
+                $lists = Wishlist::with('products')->where(['id' => $id, 'user_id' => Auth::user()->id])->get();
             } else {
-                $lists = Wishlist::where(['user_id' => Auth::user()->id])->get();
+                $lists = Wishlist::with('products')->where(['user_id' => Auth::user()->id])->get();
             }
             // ^_ ->get() restituisce una Collection
 
